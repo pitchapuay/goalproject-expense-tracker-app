@@ -9,44 +9,47 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      AWS_REGION: ap-southeast-1
+      S3_BUCKET_NAME: aws-react-goalproject-expense-tracker-app
+      LAMBDA_FUNCTION_NAME: expense-tracker-backend
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install dependencies and build frontend
-        run: |
-          cd expense-tracker
-          npm install
-          npm run build
+    # 🚀 Frontend
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
 
-      - name: Sync frontend to S3
-        uses: jakejarvis/s3-sync-action@v0.5.1
-        with:
-          args: --delete
-        env:
-          AWS_S3_BUCKET: aws-react-goalproject-expense-tracker-app
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ap-southeast-1
-          SOURCE_DIR: expense-tracker/build
+    - name: Build Frontend
+      working-directory: expense-tracker
+      run: |
+        npm install
+        npm run build
 
-      - name: Zip backend lambda function
-        run: |
-          cd expense-tracker-backend
-          zip -r ../expense-tracker-backend.zip .
+    - name: Deploy Frontend to S3
+      run: |
+        aws s3 sync frontend/build s3://${{ env.S3_BUCKET_NAME }} --delete
 
-      - name: Deploy Lambda function
-        run: |
-          aws lambda update-function-code \
-            --function-name addExpense \
-            --zip-file fileb://expense-tracker-backend.zip \
-            --region ap-southeast-1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ap-southeast-1
+    # 🐍 Backend
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Deploy Backend to Lambda
+      working-directory: expense-tracker-backend
+      run: |
+        aws lambda update-function-code \
+          --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+          --zip-file fileb://expense-tracker-backend.zip
