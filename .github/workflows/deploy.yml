@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies and build frontend
         run: |
-          cd frontend
+          cd expense-tracker
           npm install
           npm run build
 
