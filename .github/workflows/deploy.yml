@@ -37,7 +37,7 @@ jobs:
 
       - name: Zip backend lambda function
         run: |
-          cd backend
+          cd expense-tracker-backend
           zip -r ../expense-tracker-backend.zip .
 
       - name: Deploy Lambda function
