@@ -12,7 +12,7 @@ jobs:
     env:
       AWS_REGION: ap-southeast-1
       S3_BUCKET_NAME: aws-react-goalproject-expense-tracker-app
-      LAMBDA_FUNCTION_NAME: expense-tracker-backend
+      LAMBDA_FUNCTION_NAME: addExpense
 
     steps:
     - name: Checkout code
