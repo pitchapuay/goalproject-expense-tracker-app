@@ -48,7 +48,6 @@ jobs:
         python-version: 3.9
 
     - name: Deploy Backend to Lambda
-      working-directory: expense-tracker-backend
       run: |
         aws lambda update-function-code \
           --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
