@@ -47,6 +47,13 @@ jobs:
       with:
         python-version: 3.9
 
+    - name: Build backend package (deps + code)
+      working-directory: backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt -t .
+        zip -r ../function.zip .
+
     - name: Deploy Backend to Lambda
       run: |
         aws lambda update-function-code \
